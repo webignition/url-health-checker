@@ -2,27 +2,28 @@
 
 namespace webignition\Tests\UrlHealthChecker;
 
-use webignition\UrlHealthChecker\UrlHealthChecker;
+use Guzzle\Http\Client as HttpClient;
+use Guzzle\Plugin\History\HistoryPlugin;
 
 abstract class BaseTest extends \PHPUnit_Framework_TestCase {
 
-
     /**
-     * @var UrlHealthChecker
+     *
+     * @var \Guzzle\Http\Client
      */
-    private $urlHealthChecker;
-
-
-    public function __construct() {
-        $this->urlHealthChecker = new UrlHealthChecker();
-    }
+    private $httpClient;
 
 
     /**
-     * @return UrlHealthChecker
+     *
+     * @return \Guzzle\Http\Client
      */
-    protected function getUrlHealthChecker() {
-        return $this->urlHealthChecker;
+    protected function getHttpClient() {
+        if (is_null($this->httpClient)) {
+            $this->httpClient = new HttpClient();
+            $this->httpClient->addSubscriber(new HistoryPlugin());
+        }
+
+        return $this->httpClient;
     }
-    
 }
