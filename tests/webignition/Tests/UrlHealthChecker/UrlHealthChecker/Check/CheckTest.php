@@ -44,6 +44,8 @@ abstract class CheckTest extends BaseTest {
             $this->getHttpClient()->addSubscriber($plugin);
         }
 
+        $this->preConstructHealthChecker();
+
         $this->urlHealthChecker = new UrlHealthChecker();
         $this->urlHealthChecker->getConfiguration()->setBaseRequest($this->getHttpClient()->get());
         $this->urlHealthChecker->getConfiguration()->disableRetryOnBadResponse();
@@ -69,6 +71,10 @@ abstract class CheckTest extends BaseTest {
      */
     protected function getLinkState() {
         return $this->linkState;
+    }
+
+
+    protected function preConstructHealthChecker() {
     }
 
 

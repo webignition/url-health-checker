@@ -8,7 +8,6 @@ use Guzzle\Http\Exception\BadResponseException;
 use Guzzle\Http\Exception\CurlException;
 use Guzzle\Http\Exception\TooManyRedirectsException;
 use Guzzle\Plugin\History\HistoryPlugin;
-use webignition\Cookie\UrlMatcher\UrlMatcher;
 use Guzzle\Http\Message\Request as GuzzleRequest;
 use Guzzle\Http\Message\Response as GuzzleResponse;
 use Guzzle\Http\Url as GuzzleUrl;
@@ -97,34 +96,12 @@ class UrlHealthChecker {
                         $request->setHeader('Referer', $this->getConfiguration()->getReferrer());
                     }
 
-                    $this->setRequestCookies($request);
-
                     $requests[] = $request;
                 }
             }
         }
 
         return $requests;
-    }
-
-
-    /**
-     * @param GuzzleRequest $request
-     */
-    private function setRequestCookies(GuzzleRequest $request) {
-        if (!is_null($request->getCookies())) {
-            foreach ($request->getCookies() as $name => $value) {
-                $request->removeCookie($name);
-            }
-        }
-
-        $cookieUrlMatcher = new UrlMatcher();
-
-        foreach ($this->getConfiguration()->getCookies() as $cookie) {
-            if ($cookieUrlMatcher->isMatch($cookie, $request->getUrl())) {
-                $request->addCookie($cookie['name'], $cookie['value']);
-            }
-        }
     }
 
 

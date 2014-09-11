@@ -50,19 +50,6 @@ class Configuration {
      * @var boolean
      */
     private $toggleUrlEncoding = false;
-    
-    
-    /**
-     *
-     * @var array
-     */
-    private $cookies = array();
-
-
-    /**
-     * @var bool
-     */
-    private $preserveCookiesOnRedirect = false;
 
 
     /**
@@ -206,52 +193,6 @@ class Configuration {
         }
         
         return $this->getBaseRequest()->getClient()->get()->getHeader('User-Agent')->toArray();     
-    }
-
-    
-    /**
-     * 
-     * @param array $cookies
-     * @return Configuration
-     */
-    public function setCookies($cookies) {
-        $this->cookies = $cookies;
-        return $this;
-    }
-    
-    
-    /**
-     * 
-     * @return array
-     */
-    public function getCookies() {
-        return $this->cookies;
-    }
-
-
-    /**
-     * @return Configuration
-     */
-    public function enablePreserveCookiesOnRedirect() {
-        $this->preserveCookiesOnRedirect = true;
-        return $this;
-    }
-
-
-    /**
-     * @return Configuration
-     */
-    public function disablePreserveCookiesOnRedirect() {
-        $this->preserveCookiesOnRedirect = false;
-        return $this;
-    }
-
-
-    /**
-     * @return bool
-     */
-    public function preserveCookiesOnRedirect() {
-        return $this->preserveCookiesOnRedirect;
     }
 
 

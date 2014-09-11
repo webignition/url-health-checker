@@ -3,6 +3,9 @@
 namespace webignition\Tests\UrlHealthChecker\UrlHealthChecker\Check\ConfiguredCookies;
 
 use webignition\Tests\UrlHealthChecker\UrlHealthChecker\Check\CheckTest;
+use Guzzle\Plugin\Cookie\CookiePlugin;
+use Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar;
+use Guzzle\Plugin\Cookie\Cookie;
 
 abstract class ConfiguredCookiesTest extends CheckTest {
 
@@ -25,9 +28,16 @@ abstract class ConfiguredCookiesTest extends CheckTest {
      */    
     abstract protected function getExpectedRequestsOnWhichCookiesShouldNotBeSet();
 
+    protected function preConstructHealthChecker() {
+        $cookieJar = new ArrayCookieJar();
 
-    protected function preCall() {
-        $this->getUrlHealthChecker()->getConfiguration()->setCookies($this->getCookies());
+        foreach ($this->getCookies() as $cookieData) {
+            $cookieJar->add(new Cookie($cookieData));
+        }
+
+        $cookiePlugin = new CookiePlugin($cookieJar);
+
+        $this->getHttpClient()->addSubscriber($cookiePlugin);
     }
 
 
