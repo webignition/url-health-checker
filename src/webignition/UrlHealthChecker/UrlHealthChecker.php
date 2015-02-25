@@ -65,7 +65,7 @@ class UrlHealthChecker {
 
             if ($curlExceptionFactory::isCurlException($connectException)) {
                 $curlException = $curlExceptionFactory::fromConnectException($connectException);
-                return new LinkState(LinkState::TYPE_CURL, $curlException->getCode());
+                return new LinkState(LinkState::TYPE_CURL, $curlException->getCurlCode());
             }
         }
 

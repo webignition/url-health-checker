@@ -4,7 +4,7 @@
         "Read more about it at http://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "hash": "8dfa6102ae1cdc63779067201caba350",
+    "hash": "90f62644160b92ab92ec17044e063cc1",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -210,16 +210,16 @@
         },
         {
             "name": "webignition/guzzle-curl-exception",
-            "version": "0.1.1",
+            "version": "0.1.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webignition/guzzle-curl-exception.git",
-                "reference": "d309fc651f227ef06eefcf967f04b64665063363"
+                "reference": "2034e53f85df7d5e788c41933f7352cc31aa3f61"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webignition/guzzle-curl-exception/zipball/d309fc651f227ef06eefcf967f04b64665063363",
-                "reference": "d309fc651f227ef06eefcf967f04b64665063363",
+                "url": "https://api.github.com/repos/webignition/guzzle-curl-exception/zipball/2034e53f85df7d5e788c41933f7352cc31aa3f61",
+                "reference": "2034e53f85df7d5e788c41933f7352cc31aa3f61",
                 "shasum": ""
             },
             "require": {
@@ -253,7 +253,7 @@
                 "curl",
                 "exception"
             ],
-            "time": "2015-02-25 14:48:07"
+            "time": "2015-02-25 21:41:36"
         }
     ],
     "packages-dev": [
