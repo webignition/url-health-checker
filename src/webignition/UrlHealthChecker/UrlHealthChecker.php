@@ -3,7 +3,6 @@
 namespace webignition\UrlHealthChecker;
 
 use GuzzleHttp\Message\RequestInterface as HttpRequest;
-use GuzzleHttp\Message\ResponseInterace as HttpResponse;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ConnectException as HttpConnectException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
