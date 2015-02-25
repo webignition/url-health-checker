@@ -2,15 +2,17 @@
 
 namespace webignition\UrlHealthChecker;
 
-use Composer\Config;
-use Guzzle\Common\Exception\InvalidArgumentException;
-use Guzzle\Http\Exception\BadResponseException;
-use Guzzle\Http\Exception\CurlException;
-use Guzzle\Http\Exception\TooManyRedirectsException;
-use Guzzle\Plugin\History\HistoryPlugin;
-use Guzzle\Http\Message\Request as GuzzleRequest;
-use Guzzle\Http\Message\Response as GuzzleResponse;
-use Guzzle\Http\Url as GuzzleUrl;
+use GuzzleHttp\Message\RequestInterface as HttpRequest;
+use GuzzleHttp\Message\ResponseInterace as HttpResponse;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\ConnectException as HttpConnectException;
+use GuzzleHttp\Exception\TooManyRedirectsException;
+use GuzzleHttp\Subscriber\History as HttpHistorySubscriber;
+use GuzzleHttp\Url as GuzzleUrl;
+use GuzzleHttp\Query as GuzzleQuery;
+use webignition\GuzzleHttp\Exception\CurlException\Factory as CurlExceptionFactory;
+use webignition\GuzzleHttp\Exception\CurlException\Exception as CurlException;
+
 
 class UrlHealthChecker {
 
@@ -43,11 +45,10 @@ class UrlHealthChecker {
         return $this->configuration;
     }
 
-
     /**
-     *
-     * @param string $url
+     * @param $url
      * @return LinkState
+     * @throws null
      */
     public function check($url) {
         $requests = $this->buildRequestSet($url);
@@ -60,8 +61,13 @@ class UrlHealthChecker {
                     return new LinkState(LinkState::TYPE_HTTP, $response->getStatusCode());
                 }
             }
-        } catch (CurlException $curlException) {
-            return new LinkState(LinkState::TYPE_CURL, $curlException->getErrorNo());
+        } catch (HttpConnectException $connectException) {
+            $curlExceptionFactory = new CurlExceptionFactory();
+
+            if ($curlExceptionFactory::isCurlException($connectException)) {
+                $curlException = $curlExceptionFactory::fromConnectException($connectException);
+                return new LinkState(LinkState::TYPE_CURL, $curlException->getCode());
+            }
         }
 
         return new LinkState(LinkState::TYPE_HTTP, $response->getStatusCode());
@@ -71,7 +77,7 @@ class UrlHealthChecker {
     /**
      *
      * @param string $url
-     * @return \Guzzle\Http\Message\Request[]
+     * @return HttpRequest[]
      */
     private function buildRequestSet($url) {
         $useEncodingOptions = ($this->getConfiguration()->getToggleUrlEncoding())
@@ -85,8 +91,9 @@ class UrlHealthChecker {
         foreach ($userAgentSelection as $userAgent) {
             foreach ($this->getConfiguration()->getHttpMethodList() as $methodIndex => $method) {
                 foreach ($useEncodingOptions as $useEncoding) {
-                    $requestUrl = GuzzleUrl::factory($url);
-                    $requestUrl->getQuery()->useUrlEncoding($useEncoding);
+                    $requestUrl = GuzzleUrl::fromString($url);
+
+                    $requestUrl->getQuery()->setEncodingType($useEncoding ? GuzzleQuery::RFC3986 : false);
 
                     $request = clone $this->getConfiguration()->getBaseRequest();
                     $request->setUrl($requestUrl);
@@ -106,13 +113,13 @@ class UrlHealthChecker {
 
 
     /**
-     * @param GuzzleRequest $request
-     * @return GuzzleResponse|null
-     * @throws \Guzzle\Http\Exception\CurlException
+     * @param HttpRequest $request
+     * @return \GuzzleHttp\Message\ResponseInterface|null
+     * @throws \webignition\GuzzleHttp\Exception\CurlException\Exception
      */
-    private function getHttpResponse(GuzzleRequest $request) {
+    private function getHttpResponse(HttpRequest $request) {
         try {
-            return $request->send();
+            return $this->getConfiguration()->getHttpClient()->send($request);
         } catch (TooManyRedirectsException $tooManyRedirectsException) {
             return $this->getHttpClientHistory()->getLastResponse();
         } catch (BadResponseException $badResponseException) {
@@ -123,7 +130,7 @@ class UrlHealthChecker {
             }
 
             return $this->getHttpResponse($request);
-        } catch (InvalidArgumentException $e) {
+        } catch (\InvalidArgumentException $e) {
             if (substr_count($e->getMessage(), 'unable to parse malformed url')) {
                 $curlException = $this->getCurlMalformedUrlException();
                 throw $curlException;
@@ -147,13 +154,14 @@ class UrlHealthChecker {
 
     /**
      *
-     * @return HistoryPlugin
+     * @return HttpHistorySubscriber
      */
     private function getHttpClientHistory() {
-        $requestSentListeners = $this->getConfiguration()->getBaseRequest()->getEventDispatcher()->getListeners('request.sent');
-        foreach ($requestSentListeners as $requestSentListener) {
-            if ($requestSentListener[0] instanceof HistoryPlugin) {
-                return $requestSentListener[0];
+        $listenerCollections = $this->getConfiguration()->getHttpClient()->getEmitter()->listeners('complete');
+
+        foreach ($listenerCollections as $listener) {
+            if ($listener[0] instanceof HttpHistorySubscriber) {
+                return $listener[0];
             }
         }
 
@@ -166,10 +174,10 @@ class UrlHealthChecker {
      * @return CurlException
      */
     private function getCurlMalformedUrlException() {
-        $curlException = new CurlException();
-        $curlException->setError(Configuration::CURL_MALFORMED_URL_MESSAGE, Configuration::CURL_MALFORMED_URL_CODE);
-        return $curlException;
+        return new CurlException(
+            Configuration::CURL_MALFORMED_URL_MESSAGE,
+            Configuration::CURL_MALFORMED_URL_CODE
+        );
     }
-
 
 }

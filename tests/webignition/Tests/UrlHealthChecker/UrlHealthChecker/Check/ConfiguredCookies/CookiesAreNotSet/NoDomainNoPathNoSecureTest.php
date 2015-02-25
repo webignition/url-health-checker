@@ -11,8 +11,8 @@ class NoDomainNoPathNoSecureTest extends CookiesAreNotSetTest {
     protected function getCookies() {
         return array(
             array(
-                'name' => 'name1',
-                'value' => 'value1'
+                'Name' => 'name1',
+                'Value' => 'value1'
             )                       
         );         
     }

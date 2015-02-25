@@ -3,9 +3,10 @@
 namespace webignition\Tests\UrlHealthChecker\UrlHealthChecker\Check\RedirectCookies;
 
 use webignition\Tests\UrlHealthChecker\UrlHealthChecker\Check\CheckTest;
-use Guzzle\Plugin\Cookie\CookiePlugin;
-use Guzzle\Plugin\Cookie\CookieJar\ArrayCookieJar;
-use Guzzle\Plugin\Cookie\Cookie;
+use GuzzleHttp\Subscriber\Cookie as HttpCookieSubscriber;
+use GuzzleHttp\Cookie\CookieJar;
+use GuzzleHttp\Cookie\SetCookie;
+use GuzzleHttp\Message\RequestInterface as HttpRequest;
 
 abstract class RedirectCookiesTest extends CheckTest {
 
@@ -17,27 +18,25 @@ abstract class RedirectCookiesTest extends CheckTest {
     
     /**
      * 
-     * @return \Guzzle\Http\Message\RequestInterface[]
+     * @return \GuzzleHttp\Message\RequestInterface[]
      */    
     abstract protected function getExpectedRequestsOnWhichCookiesShouldBeSet();
     
     
     /**
      * 
-     * @return \Guzzle\Http\Message\RequestInterface[]
+     * @return \GuzzleHttp\Message\RequestInterface[]
      */    
     abstract protected function getExpectedRequestsOnWhichCookiesShouldNotBeSet();
 
     protected function preConstructHealthChecker() {
-        $cookieJar = new ArrayCookieJar();
+        $cookieJar = new CookieJar();
 
         foreach ($this->getCookies() as $cookieData) {
-            $cookieJar->add(new Cookie($cookieData));
+            $cookieJar->setCookie(new SetCookie($cookieData));
         }
 
-        $cookiePlugin = new CookiePlugin($cookieJar);
-
-        $this->getHttpClient()->addSubscriber($cookiePlugin);
+        $this->getHttpClient()->getEmitter()->attach(new HttpCookieSubscriber($cookieJar));
     }
 
 
@@ -52,14 +51,14 @@ abstract class RedirectCookiesTest extends CheckTest {
     
     public function testCookiesAreSetOnExpectedRequests() {
         foreach ($this->getExpectedRequestsOnWhichCookiesShouldBeSet() as $request) {
-            $this->assertEquals($this->getExpectedCookieValues(), $request->getCookies());
+            $this->assertEquals($this->getExpectedCookieValues(), $this->getRequestCookieValues($request));
         }
     }
 
 
     public function testCookiesAreNotSetOnExpectedRequests() {
         foreach ($this->getExpectedRequestsOnWhichCookiesShouldNotBeSet() as $request) {
-            $this->assertEquals(array(), $request->getCookies());
+            $this->assertEquals(array(), $this->getRequestCookieValues($request));
         }
     }
     
@@ -72,10 +71,28 @@ abstract class RedirectCookiesTest extends CheckTest {
         $nameValueArray = array();
         
         foreach ($this->getCookies() as $cookie) {
-            $nameValueArray[$cookie['name']] = $cookie['value'];
+            $nameValueArray[$cookie['Name']] = $cookie['Value'];
         }
         
         return $nameValueArray;
+    }
+
+
+    private function getRequestCookieValues(HttpRequest $request) {
+        if (!$request->hasHeader('Cookie')) {
+            return [];
+        }
+
+        $cookieStrings = explode(';', $request->getHeader('Cookie'));
+        $values = [];
+
+        foreach ($cookieStrings as $cookieString) {
+            $cookieString = trim($cookieString);
+            $currentValues = explode('=', $cookieString);
+            $values[$currentValues[0]] = $currentValues[1];
+        }
+
+        return $values;
     }
     
 }

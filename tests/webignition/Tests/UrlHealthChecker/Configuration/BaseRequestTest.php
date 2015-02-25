@@ -5,21 +5,34 @@ namespace webignition\Tests\UrlHealthChecker\Configuration;
 class BaseRequestTest extends ConfigurationTest {
     
     public function testGetDefaultBaseRequest() {
-        $this->assertEquals($this->getHttpClient()->get(), $this->getConfiguration()->getBaseRequest());
-    }    
-    
-    public function testSetReturnsSelf() {
-        $this->assertEquals($this->getConfiguration(), $this->getConfiguration()->setBaseRequest($this->getHttpClient()->get()));
+        $this->assertEquals($this->getHttpClient()->createRequest('GET'), $this->getConfiguration()->getBaseRequest());
     }
     
-    public function testSetGetBaseRequest() {        
-        $baseRequest = $this->getHttpClient()->get();
-        $baseRequest->setAuth('example_user', 'example_password');
-        
+    public function testSetReturnsSelf() {
+        $this->assertEquals(
+            $this->getConfiguration(),
+            $this->getConfiguration()->setBaseRequest($this->getHttpClient()->createRequest('GET'))
+        );
+    }
+
+    public function testSetGetBaseRequest() {
+        $username = 'example_user';
+        $password = 'example_password';
+
+        $baseRequest = $this->getHttpClient([
+            'defaults' => [
+                'auth'    => ['example_user', 'example_password'],
+            ]
+        ])->createRequest('GET');
+
         $this->getConfiguration()->setBaseRequest($baseRequest);
-        
-        $this->assertEquals('example_user', $this->getConfiguration()->getBaseRequest()->getUsername());
-        $this->assertEquals($baseRequest->getUsername(), $this->getConfiguration()->getBaseRequest()->getUsername());
+
+        $this->assertEquals([
+            $username,
+            $password
+        ], $this->getConfiguration()->getBaseRequest()->getConfig()->get('auth'));
+
+        $this->assertEquals($baseRequest->getConfig()->get('auth'), $this->getConfiguration()->getBaseRequest()->getConfig()->get('auth'));
     }
     
 }

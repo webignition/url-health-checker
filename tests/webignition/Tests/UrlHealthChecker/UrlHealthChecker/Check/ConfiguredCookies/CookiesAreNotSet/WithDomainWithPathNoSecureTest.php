@@ -11,10 +11,10 @@ class WithDomainWithPathNoSecureTest extends CookiesAreNotSetTest {
     protected function getCookies() {
         return array(
             array(
-                'domain' => '.example.com',
-                'path' => '/path',
-                'name' => 'name1',
-                'value' => 'value1'
+                'Domain' => '.example.com',
+                'Path' => '/path',
+                'Name' => 'name1',
+                'Value' => 'value1'
             )                       
         );         
     }

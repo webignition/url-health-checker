@@ -3,9 +3,9 @@
 namespace webignition\Tests\UrlHealthChecker\UrlHealthChecker\Check;
 
 use webignition\Tests\UrlHealthChecker\BaseTest;
-use Guzzle\Http\Message\Response as HttpResponse;
-use Guzzle\Plugin\History\HistoryPlugin;
-use Guzzle\Plugin\Mock\MockPlugin;
+use GuzzleHttp\Message\Response as HttpResponse;
+use GuzzleHttp\Subscriber\History as HttpHistorySubscriber;
+use GuzzleHttp\Subscriber\Mock as HttpMockSubscriber;
 use webignition\UrlHealthChecker\UrlHealthChecker;
 use webignition\UrlHealthChecker\LinkState;
 
@@ -31,23 +31,14 @@ abstract class CheckTest extends BaseTest {
 
     public function setUp() {
         if (count($this->getHttpFixtures())) {
-            $plugin = new MockPlugin();
-
-            foreach ($this->getHttpFixtures() as $item) {
-                if ($item instanceof \Exception) {
-                    $plugin->addException($item);
-                } elseif (is_string($item)) {
-                    $plugin->addResponse(HttpResponse::fromMessage($item));
-                }
-            }
-
-            $this->getHttpClient()->addSubscriber($plugin);
+            $this->getHttpClient()->getEmitter()->attach(new HttpMockSubscriber($this->getHttpFixtures()));
         }
 
         $this->preConstructHealthChecker();
 
         $this->urlHealthChecker = new UrlHealthChecker();
-        $this->urlHealthChecker->getConfiguration()->setBaseRequest($this->getHttpClient()->get());
+        $this->urlHealthChecker->getConfiguration()->setHttpClient($this->getHttpClient());
+        $this->urlHealthChecker->getConfiguration()->setBaseRequest($this->getHttpClient()->createRequest('GET'));
         $this->urlHealthChecker->getConfiguration()->disableRetryOnBadResponse();
         $this->urlHealthChecker->getConfiguration()->setHttpMethodList(array('GET'));
 
@@ -92,13 +83,13 @@ abstract class CheckTest extends BaseTest {
 
     /**
      *
-     * @return \Guzzle\Plugin\History\HistoryPlugin|null
+     * @return HttpHistorySubscriber|null
      */
     protected function getHttpHistory() {
-        $listenerCollections = $this->getHttpClient()->getEventDispatcher()->getListeners('request.sent');
+        $listenerCollections = $this->getHttpClient()->getEmitter()->listeners('complete');
 
         foreach ($listenerCollections as $listener) {
-            if ($listener[0] instanceof HistoryPlugin) {
+            if ($listener[0] instanceof HttpHistorySubscriber) {
                 return $listener[0];
             }
         }

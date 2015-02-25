@@ -9,10 +9,11 @@ use webignition\HtmlDocument\LinkChecker\LinkState;
 class RequestTimeoutTest extends CheckTest {
 
     protected function preCall() {
-        $baseRequest = $this->getHttpClient()->createRequest('GET', $this->getRequestUrl(), array(), null, array(
+        $baseRequest = $this->getHttpClient()->createRequest('GET', $this->getRequestUrl(), array(
             'timeout'         => 0.001,
             'connect_timeout' => 0.001
         ));
+
 
         $this->getUrlHealthChecker()->getConfiguration()->setBaseRequest($baseRequest);
     }

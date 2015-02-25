@@ -8,7 +8,7 @@ abstract class CookiesAreNotSetTest extends ConfiguredCookiesTest {
 
     /**
      *
-     * @return \Guzzle\Http\Message\RequestInterface[]
+     * @return \GuzzleHttp\Message\RequestInterface[]
      */
     protected function getExpectedRequestsOnWhichCookiesShouldBeSet() {
         return [];
@@ -17,16 +17,10 @@ abstract class CookiesAreNotSetTest extends ConfiguredCookiesTest {
 
     /**
      *
-     * @return \Guzzle\Http\Message\RequestInterface[]
+     * @return \GuzzleHttp\Message\RequestInterface[]
      */
     protected function getExpectedRequestsOnWhichCookiesShouldNotBeSet() {
-        $requests = [];
-
-        foreach ($this->getHttpHistory()->getAll() as $httpTransaction) {
-            $requests[] = $httpTransaction['request'];
-        }
-
-        return $requests;
+        return $this->getHttpHistory()->getRequests();
     }
 
 }

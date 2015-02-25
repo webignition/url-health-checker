@@ -2,9 +2,9 @@
 
 namespace webignition\UrlHealthChecker;
 
-use Guzzle\Http\Message\RequestInterface as HttpRequest;
-use Guzzle\Http\Client as HttpClient;
-use Guzzle\Plugin\History\HistoryPlugin as HttpHistoryPlugin;
+use GuzzleHttp\Message\RequestInterface as HttpRequest;
+use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Subscriber\History as HttpHistorySubscriber;
 
 class Configuration {
 
@@ -33,7 +33,7 @@ class Configuration {
     
     /**
      *
-     * @var \Guzzle\Http\Message\Request
+     * @var HttpRequest
      */
     private $baseRequest = null;
 
@@ -56,6 +56,12 @@ class Configuration {
      * @var string
      */
     private $referrer;
+
+
+    /**
+     * @var HttpClient
+     */
+    private $httpClient;
     
     
     /**
@@ -77,12 +83,34 @@ class Configuration {
     public function getBaseRequest() {
         if (is_null($this->baseRequest)) {
             $client = new HttpClient;
-            $client->addSubscriber(new HttpHistoryPlugin());
-            $this->baseRequest = $client->get();
+            $client->getEmitter()->attach(new HttpHistorySubscriber());
+            $this->baseRequest = $client->createRequest('GET');
         }
         
         return $this->baseRequest;
-    }     
+    }
+
+
+    /**
+     * @param HttpClient $httpClient
+     * @return $this
+     */
+    public function setHttpClient(HttpClient $httpClient) {
+        $this->httpClient = $httpClient;
+        return $this;
+    }
+
+
+    /**
+     * @return HttpClient
+     */
+    public function getHttpClient() {
+        if (is_null($this->httpClient)) {
+            $this->httpClient = new HttpClient();
+        }
+
+        return $this->httpClient;
+    }
     
     
     /**
@@ -191,8 +219,10 @@ class Configuration {
         if (count($this->userAgents)) {
             return $this->userAgents;
         }
-        
-        return $this->getBaseRequest()->getClient()->get()->getHeader('User-Agent')->toArray();     
+
+        return [
+            $this->getBaseRequest()->getHeader('User-Agent')
+        ];
     }
 
 
