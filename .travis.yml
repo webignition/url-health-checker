@@ -7,7 +7,7 @@ php:
   - hhvm-nightly
   
 before_script:
-  - composer.phar install
+  - composer install
 
 script:
   - phpunit
