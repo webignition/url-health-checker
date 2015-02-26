@@ -53,7 +53,7 @@ abstract class CheckTest extends BaseTest {
 
 
     public function testLinkStateMatchesResponseCode() {
-        $this->assertEquals($this->getLinkState()->getState(), $this->getExpectedResponseCode());
+        $this->assertEquals($this->getExpectedResponseCode(), $this->getLinkState()->getState());
     }
 
 
