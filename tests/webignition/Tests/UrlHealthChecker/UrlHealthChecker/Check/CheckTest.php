@@ -38,7 +38,6 @@ abstract class CheckTest extends BaseTest {
 
         $this->urlHealthChecker = new UrlHealthChecker();
         $this->urlHealthChecker->getConfiguration()->setHttpClient($this->getHttpClient());
-        $this->urlHealthChecker->getConfiguration()->setBaseRequest($this->getHttpClient()->createRequest('GET'));
         $this->urlHealthChecker->getConfiguration()->disableRetryOnBadResponse();
         $this->urlHealthChecker->getConfiguration()->setHttpMethodList(array('GET'));
 

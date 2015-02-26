@@ -31,11 +31,11 @@ class Configuration {
     );
 
     
-    /**
-     *
-     * @var HttpRequest
-     */
-    private $baseRequest = null;
+//    /**
+//     *
+//     * @var HttpRequest
+//     */
+//    private $baseRequest = null;
 
     
     /**
@@ -62,33 +62,6 @@ class Configuration {
      * @var HttpClient
      */
     private $httpClient;
-    
-    
-    /**
-     * 
-     * @param HttpRequest $request
-     * @return Configuration
-     */
-    public function setBaseRequest(HttpRequest $request) {
-        $this->baseRequest = $request;
-        return $this;
-    }
-    
-    
-    
-    /**
-     * 
-     * @return HttpRequest $request
-     */
-    public function getBaseRequest() {
-        if (is_null($this->baseRequest)) {
-            $client = new HttpClient;
-            $client->getEmitter()->attach(new HttpHistorySubscriber());
-            $this->baseRequest = $client->createRequest('GET');
-        }
-        
-        return $this->baseRequest;
-    }
 
 
     /**
@@ -221,7 +194,7 @@ class Configuration {
         }
 
         return [
-            $this->getBaseRequest()->getHeader('User-Agent')
+            $this->getHttpClient()->getDefaultUserAgent()
         ];
     }
 

@@ -94,8 +94,11 @@ class UrlHealthChecker {
 
                     $requestUrl->getQuery()->setEncodingType($useEncoding ? GuzzleQuery::RFC3986 : false);
 
-                    $request = clone $this->getConfiguration()->getBaseRequest();
-                    $request->setUrl($requestUrl);
+                    $request = $this->getConfiguration()->getHttpClient()->createRequest(
+                        'GET',
+                        $requestUrl
+                    );
+
                     $request->setHeader('user-agent', $userAgent);
 
                     if ($this->getConfiguration()->hasReferrer()) {
