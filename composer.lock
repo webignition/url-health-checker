@@ -210,16 +210,16 @@
         },
         {
             "name": "webignition/guzzle-curl-exception",
-            "version": "0.1.2",
+            "version": "0.1.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/webignition/guzzle-curl-exception.git",
-                "reference": "2034e53f85df7d5e788c41933f7352cc31aa3f61"
+                "reference": "53c4b9759a3525078e4bd95b1f23f651aae59f40"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/webignition/guzzle-curl-exception/zipball/2034e53f85df7d5e788c41933f7352cc31aa3f61",
-                "reference": "2034e53f85df7d5e788c41933f7352cc31aa3f61",
+                "url": "https://api.github.com/repos/webignition/guzzle-curl-exception/zipball/53c4b9759a3525078e4bd95b1f23f651aae59f40",
+                "reference": "53c4b9759a3525078e4bd95b1f23f651aae59f40",
                 "shasum": ""
             },
             "require": {
@@ -253,7 +253,7 @@
                 "curl",
                 "exception"
             ],
-            "time": "2015-02-25 21:41:36"
+            "time": "2015-02-25 21:54:38"
         }
     ],
     "packages-dev": [
