@@ -7,11 +7,10 @@ php:
   - hhvm-nightly
   
 before_script:
-  - wget http://getcomposer.org/composer.phar
-  - php composer.phar install
+  - composer.phar install
 
 script:
-  - phpunit --stop-on-failure tests/webignition/Tests/UrlHealthChecker/UrlHealthChecker/Check/RequestTimeoutTest.php
+  - phpunit
   
 matrix:
   allow_failures:
