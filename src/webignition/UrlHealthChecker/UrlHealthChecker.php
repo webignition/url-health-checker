@@ -61,6 +61,8 @@ class UrlHealthChecker {
                 }
             }
         } catch (HttpConnectException $connectException) {
+            echo $connectException;
+
             $curlExceptionFactory = new CurlExceptionFactory();
 
             if ($curlExceptionFactory::isCurlException($connectException)) {
