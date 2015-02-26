@@ -61,7 +61,10 @@ class UrlHealthChecker {
                 }
             }
         } catch (HttpConnectException $connectException) {
-            echo $connectException;
+            if (substr_count($connectException->getMessage(), 'cURL error 7')) {
+                echo $connectException->getRequest() . "\n\n";
+                var_dump($connectException->getRequest());
+            }
 
             $curlExceptionFactory = new CurlExceptionFactory();
 
