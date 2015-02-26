@@ -2,7 +2,6 @@
 
 namespace webignition\UrlHealthChecker;
 
-use GuzzleHttp\Message\RequestInterface as HttpRequest;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Subscriber\History as HttpHistorySubscriber;
 
@@ -29,13 +28,6 @@ class Configuration {
         self::HTTP_METHOD_HEAD,
         self::HTTP_METHOD_GET
     );
-
-    
-//    /**
-//     *
-//     * @var HttpRequest
-//     */
-//    private $baseRequest = null;
 
     
     /**
@@ -80,6 +72,10 @@ class Configuration {
     public function getHttpClient() {
         if (is_null($this->httpClient)) {
             $this->httpClient = new HttpClient();
+        }
+
+        if (is_null($this->getHttpClientHistory())) {
+            $this->httpClient->getEmitter()->attach(new HttpHistorySubscriber());
         }
 
         return $this->httpClient;
@@ -222,6 +218,23 @@ class Configuration {
      */
     public function hasReferrer() {
         return trim($this->getReferrer()) != '';
+    }
+
+
+    /**
+     *
+     * @return HttpHistorySubscriber
+     */
+    public function getHttpClientHistory() {
+        $listenerCollections = $this->httpClient->getEmitter()->listeners('complete');
+
+        foreach ($listenerCollections as $listener) {
+            if ($listener[0] instanceof HttpHistorySubscriber) {
+                return $listener[0];
+            }
+        }
+
+        return null;
     }
     
 }

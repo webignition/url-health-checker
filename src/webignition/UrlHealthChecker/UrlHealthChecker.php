@@ -123,7 +123,7 @@ class UrlHealthChecker {
         try {
             return $this->getConfiguration()->getHttpClient()->send($request);
         } catch (TooManyRedirectsException $tooManyRedirectsException) {
-            return $this->getHttpClientHistory()->getLastResponse();
+            return $this->getConfiguration()->getHttpClientHistory()->getLastResponse();
         } catch (BadResponseException $badResponseException) {
             $this->badRequestCount++;
 
@@ -151,23 +151,6 @@ class UrlHealthChecker {
         }
 
         return $this->badRequestCount > self::BAD_REQUEST_LIMIT - 1;
-    }
-
-
-    /**
-     *
-     * @return HttpHistorySubscriber
-     */
-    private function getHttpClientHistory() {
-        $listenerCollections = $this->getConfiguration()->getHttpClient()->getEmitter()->listeners('complete');
-
-        foreach ($listenerCollections as $listener) {
-            if ($listener[0] instanceof HttpHistorySubscriber) {
-                return $listener[0];
-            }
-        }
-
-        return null;
     }
 
 

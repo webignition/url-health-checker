@@ -2,12 +2,10 @@
 
 namespace webignition\Tests\UrlHealthChecker\Configuration;
 
-use GuzzleHttp\Client as HttpClient;
-
 class HttpClientTest extends ConfigurationTest {
     
     public function testGetDefaultHttpClient() {
-        $this->assertEquals(new HttpClient(), $this->getConfiguration()->getHttpClient());
+        $this->assertInstanceOf('GuzzleHttp\Client', $this->getConfiguration()->getHttpClient());
     }
     
     public function testSetReturnsSelf() {
