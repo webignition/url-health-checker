@@ -2,11 +2,11 @@
 
 namespace webignition\UrlHealthChecker;
 
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Message\RequestInterface as HttpRequest;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ConnectException as HttpConnectException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
-use GuzzleHttp\Subscriber\History as HttpHistorySubscriber;
 use GuzzleHttp\Url as GuzzleUrl;
 use GuzzleHttp\Query as GuzzleQuery;
 use webignition\GuzzleHttp\Exception\CurlException\Factory as CurlExceptionFactory;
@@ -137,9 +137,18 @@ class UrlHealthChecker {
                 $curlException = $this->getCurlMalformedUrlException();
                 throw $curlException;
             }
+        } catch (HttpConnectException $connectException) {
+            throw $connectException;
+        } catch (RequestException $requestException) {
+            $this->badRequestCount++;
+
+            if ($this->isBadRequestLimitReached()) {
+                return $requestException->getResponse();
+            }
+
+            return $this->getHttpResponse($request);
         }
     }
-
 
     /**
      *
