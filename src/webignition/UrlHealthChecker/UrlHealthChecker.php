@@ -144,7 +144,7 @@ class UrlHealthChecker {
                 substr($requestException->getMessage(), 0, strlen('cURL error')) == 'cURL error';
 
             if (!$requestException->hasResponse() && $isCurlExceptionMessage) {
-                $connectException = new ConnectException(
+                $connectException = new HttpConnectException(
                     $requestException->getMessage(),
                     $requestException->getRequest(),
                     $requestException->getResponse(),
