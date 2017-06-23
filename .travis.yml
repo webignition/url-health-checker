@@ -9,4 +9,5 @@ install:
   - composer install
 
 script:
-  - phpunit
+  - composer cs
+  - composer test

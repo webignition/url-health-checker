@@ -7,58 +7,72 @@ use GuzzleHttp\Message\RequestInterface as HttpRequest;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ConnectException as HttpConnectException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
-use GuzzleHttp\Url as GuzzleUrl;
-use GuzzleHttp\Query as GuzzleQuery;
+use GuzzleHttp\Message\ResponseInterface;
 use webignition\GuzzleHttp\Exception\CurlException\Factory as CurlExceptionFactory;
 use webignition\GuzzleHttp\Exception\CurlException\Exception as CurlException;
 
-
-class UrlHealthChecker {
-
+class UrlHealthChecker
+{
     const HTTP_STATUS_CODE_OK = 200;
     const BAD_REQUEST_LIMIT = 3;
+    const CURL_EXCEPTION_MESSAGE_PREFIX = 'cURL error';
 
     /**
-     *
      * @var int
      */
     private $badRequestCount = 0;
 
-
     /**
-     *
      * @var Configuration
      */
     private $configuration;
 
-
     /**
-     *
      * @return Configuration
      */
-    public function getConfiguration() {
+    public function getConfiguration()
+    {
         if (is_null($this->configuration)) {
-            $this->configuration = new Configuration();
+            $this->configuration = new Configuration([]);
         }
 
         return $this->configuration;
     }
 
     /**
-     * @param $url
-     * @return LinkState
-     * @throws null
+     * @param Configuration $configuration
      */
-    public function check($url) {
-        $requests = $this->buildRequestSet($url);
+    public function setConfiguration(Configuration $configuration)
+    {
+        $this->configuration = $configuration;
+    }
+
+    /**
+     * @param string $url
+     *
+     * @return LinkState
+     */
+    public function check($url)
+    {
+        $requestFactory = new RequestSetFactory();
+        $requestFactory->setConfiguration($this->getConfiguration());
 
         try {
+            $requests = $requestFactory->create($url);
+
             foreach ($requests as $request) {
                 $response = $this->getHttpResponse($request);
 
                 if ($response->getStatusCode() === self::HTTP_STATUS_CODE_OK) {
                     return new LinkState(LinkState::TYPE_HTTP, $response->getStatusCode());
                 }
+            }
+        } catch (\InvalidArgumentException $invalidArgumentException) {
+            if (substr_count($invalidArgumentException->getMessage(), 'malformed url')) {
+                return new LinkState(
+                    LinkState::TYPE_CURL,
+                    Configuration::CURL_MALFORMED_URL_CODE
+                );
             }
         } catch (HttpConnectException $connectException) {
             $curlExceptionFactory = new CurlExceptionFactory();
@@ -72,54 +86,14 @@ class UrlHealthChecker {
         return new LinkState(LinkState::TYPE_HTTP, $response->getStatusCode());
     }
 
-
-    /**
-     *
-     * @param string $url
-     * @return HttpRequest[]
-     */
-    private function buildRequestSet($url) {
-        $useEncodingOptions = ($this->getConfiguration()->getToggleUrlEncoding())
-            ? array(true, false)
-            : array(true);
-
-        $requests = array();
-
-        $userAgentSelection = $this->getConfiguration()->getUserAgentSelectionForRequest();
-
-        foreach ($userAgentSelection as $userAgent) {
-            foreach ($this->getConfiguration()->getHttpMethodList() as $methodIndex => $method) {
-                foreach ($useEncodingOptions as $useEncoding) {
-                    $requestUrl = GuzzleUrl::fromString($url);
-
-                    $requestUrl->getQuery()->setEncodingType($useEncoding ? GuzzleQuery::RFC3986 : false);
-
-                    $request = $this->getConfiguration()->getHttpClient()->createRequest(
-                        'GET',
-                        $requestUrl
-                    );
-
-                    $request->setHeader('user-agent', $userAgent);
-
-                    if ($this->getConfiguration()->hasReferrer()) {
-                        $request->setHeader('Referer', $this->getConfiguration()->getReferrer());
-                    }
-
-                    $requests[] = $request;
-                }
-            }
-        }
-
-        return $requests;
-    }
-
-
     /**
      * @param HttpRequest $request
-     * @return \GuzzleHttp\Message\ResponseInterface|null
-     * @throws \webignition\GuzzleHttp\Exception\CurlException\Exception
+     * @throws CurlException
+     *
+     * @return ResponseInterface|null
      */
-    private function getHttpResponse(HttpRequest $request) {
+    private function getHttpResponse(HttpRequest $request)
+    {
         try {
             return $this->getConfiguration()->getHttpClient()->send($request);
         } catch (TooManyRedirectsException $tooManyRedirectsException) {
@@ -132,26 +106,16 @@ class UrlHealthChecker {
             }
 
             return $this->getHttpResponse($request);
-        } catch (\InvalidArgumentException $e) {
-            if (substr_count($e->getMessage(), 'unable to parse malformed url')) {
-                $curlException = $this->getCurlMalformedUrlException();
-                throw $curlException;
-            }
         } catch (HttpConnectException $connectException) {
             throw $connectException;
         } catch (RequestException $requestException) {
-            $isCurlExceptionMessage =
-                substr($requestException->getMessage(), 0, strlen('cURL error')) == 'cURL error';
-
-            if (!$requestException->hasResponse() && $isCurlExceptionMessage) {
-                $connectException = new HttpConnectException(
+            if ($this->isCurlException($requestException)) {
+                throw new HttpConnectException(
                     $requestException->getMessage(),
                     $requestException->getRequest(),
                     $requestException->getResponse(),
                     $requestException->getPrevious()
                 );
-
-                throw $connectException;
             }
 
             $this->badRequestCount++;
@@ -165,10 +129,10 @@ class UrlHealthChecker {
     }
 
     /**
-     *
      * @return boolean
      */
-    private function isBadRequestLimitReached() {
+    private function isBadRequestLimitReached()
+    {
         if ($this->getConfiguration()->getRetryOnBadResponse() === false) {
             return true;
         }
@@ -176,16 +140,17 @@ class UrlHealthChecker {
         return $this->badRequestCount > self::BAD_REQUEST_LIMIT - 1;
     }
 
-
     /**
+     * @param RequestException $requestException
      *
-     * @return CurlException
+     * @return bool
      */
-    private function getCurlMalformedUrlException() {
-        return new CurlException(
-            Configuration::CURL_MALFORMED_URL_MESSAGE,
-            Configuration::CURL_MALFORMED_URL_CODE
-        );
+    private function isCurlException(RequestException $requestException)
+    {
+        return substr(
+            $requestException->getMessage(),
+            0,
+            strlen(self::CURL_EXCEPTION_MESSAGE_PREFIX)
+        ) == self::CURL_EXCEPTION_MESSAGE_PREFIX;
     }
-
 }
