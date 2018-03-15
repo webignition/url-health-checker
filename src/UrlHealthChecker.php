@@ -7,6 +7,7 @@ use GuzzleHttp\Message\RequestInterface as HttpRequest;
 use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ConnectException as HttpConnectException;
 use GuzzleHttp\Exception\TooManyRedirectsException;
+use GuzzleHttp\Message\Response;
 use GuzzleHttp\Message\ResponseInterface;
 use webignition\GuzzleHttp\Exception\CurlException\Factory as CurlExceptionFactory;
 use webignition\GuzzleHttp\Exception\CurlException\Exception as CurlException;
@@ -109,6 +110,19 @@ class UrlHealthChecker
         } catch (HttpConnectException $connectException) {
             throw $connectException;
         } catch (RequestException $requestException) {
+            // #1815
+            // #1816
+            // Workaround for a very, very, very small number of GET requests failing with the below exception message
+            // and with an exception code of zero.
+            // In such cases the request is not lacking a body.
+            // Will have to investigate further after upgrading to guzzle6
+            $noRequestBodyFailureMessage = 'No response was received for a request with no body. '
+                .'This could mean that you are saturating your network.';
+
+            if ($noRequestBodyFailureMessage === $requestException->getMessage()) {
+                return new Response(200);
+            }
+
             if ($this->isCurlException($requestException)) {
                 throw new HttpConnectException(
                     $requestException->getMessage(),
