@@ -23,16 +23,8 @@ class LinkState
      */
     public function __construct($type, $state)
     {
-        $this->setType($type);
-        $this->setState($state);
-    }
-
-    /**
-     * @param string $type
-     */
-    public function setType($type)
-    {
         $this->type = $type;
+        $this->state = $state;
     }
 
     /**
@@ -41,14 +33,6 @@ class LinkState
     public function getType()
     {
         return $this->type;
-    }
-
-    /**
-     * @param int $state
-     */
-    public function setState($state)
-    {
-        $this->state = $state;
     }
 
     /**
