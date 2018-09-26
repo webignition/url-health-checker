@@ -32,4 +32,9 @@ class LinkState
     {
         return $this->state;
     }
+
+    public function isError(): bool
+    {
+        return self::TYPE_CURL === $this->type || $this->state >= 300;
+    }
 }
