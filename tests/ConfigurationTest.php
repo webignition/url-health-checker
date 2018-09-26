@@ -4,7 +4,7 @@ namespace webignition\Tests\UrlHealthChecker;
 
 use webignition\UrlHealthChecker\Configuration;
 
-class ConfigurationTest extends \PHPUnit_Framework_TestCase
+class ConfigurationTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @dataProvider createDataProvider

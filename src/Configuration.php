@@ -38,9 +38,6 @@ class Configuration
      */
     private $referrer;
 
-    /**
-     * @param array $configurationValues
-     */
     public function __construct(array $configurationValues = [])
     {
         if (isset($configurationValues[self::CONFIG_KEY_USER_AGENTS])) {
@@ -60,10 +57,7 @@ class Configuration
         }
     }
 
-    /**
-     * @return bool
-     */
-    public function getRetryOnBadResponse()
+    public function getRetryOnBadResponse(): bool
     {
         return $this->retryOnBadResponse;
     }
@@ -71,7 +65,7 @@ class Configuration
     /**
      * @return string[]
      */
-    public function getHttpMethodList()
+    public function getHttpMethodList(): array
     {
         return $this->httpMethodList;
     }
@@ -79,15 +73,12 @@ class Configuration
     /**
      * @return string[]
      */
-    public function getUserAgents()
+    public function getUserAgents(): array
     {
         return $this->userAgents;
     }
 
-    /**
-     * @return string
-     */
-    public function getReferrer()
+    public function getReferrer(): ?string
     {
         return $this->referrer;
     }

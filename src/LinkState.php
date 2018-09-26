@@ -17,28 +17,18 @@ class LinkState
      */
     private $state = null;
 
-    /**
-     * @param string $type
-     * @param int $state
-     */
-    public function __construct($type, $state)
+    public function __construct(string $type, int $state)
     {
         $this->type = $type;
         $this->state = $state;
     }
 
-    /**
-     * @return string
-     */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    /**
-     * @return int
-     */
-    public function getState()
+    public function getState(): int
     {
         return $this->state;
     }

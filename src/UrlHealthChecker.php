@@ -60,25 +60,16 @@ class UrlHealthChecker
         $httpClientHandler->push($httpHistory);
     }
 
-    /**
-     * @return Configuration
-     */
-    public function getConfiguration()
+    public function getConfiguration(): Configuration
     {
         return $this->configuration;
     }
 
-    /**
-     * @param Configuration $configuration
-     */
     public function setConfiguration(Configuration $configuration)
     {
         $this->configuration = $configuration;
     }
 
-    /**
-     * @param HttpClient $httpClient
-     */
     public function setHttpClient(HttpClient $httpClient)
     {
         $this->httpClient = $httpClient;
@@ -92,7 +83,7 @@ class UrlHealthChecker
      *
      * @throws GuzzleException
      */
-    public function check($url)
+    public function check(string $url): LinkState
     {
         $response = null;
 
@@ -126,9 +117,10 @@ class UrlHealthChecker
      * @param RequestInterface $request
      *
      * @return ResponseInterface
+     *
      * @throws GuzzleException
      */
-    private function getHttpResponse(RequestInterface $request)
+    private function getHttpResponse(RequestInterface $request): ResponseInterface
     {
         try {
             return $this->httpClient->send($request);
@@ -163,10 +155,7 @@ class UrlHealthChecker
         }
     }
 
-    /**
-     * @return boolean
-     */
-    private function isBadRequestLimitReached()
+    private function isBadRequestLimitReached(): bool
     {
         if ($this->getConfiguration()->getRetryOnBadResponse() === false) {
             return true;
@@ -175,12 +164,7 @@ class UrlHealthChecker
         return $this->badRequestCount > self::BAD_REQUEST_LIMIT - 1;
     }
 
-    /**
-     * @param RequestException $requestException
-     *
-     * @return bool
-     */
-    private function isCurlException(RequestException $requestException)
+    private function isCurlException(RequestException $requestException): bool
     {
         return substr(
             $requestException->getMessage(),
@@ -194,7 +178,7 @@ class UrlHealthChecker
      *
      * @return RequestInterface[]
      */
-    private function createRequestSet($url)
+    private function createRequestSet(string $url): array
     {
         $httpMethodList = $this->configuration->getHttpMethodList();
         $userAgentSelection = $this->getUserAgentSelection();
@@ -222,7 +206,7 @@ class UrlHealthChecker
     /**
      * @return string[]
      */
-    private function getUserAgentSelection()
+    private function getUserAgentSelection(): array
     {
         $configurationUserAgents = $this->configuration->getUserAgents();
 

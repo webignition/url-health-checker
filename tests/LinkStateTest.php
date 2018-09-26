@@ -4,10 +4,10 @@ namespace webignition\Tests\UrlHealthChecker;
 
 use webignition\UrlHealthChecker\LinkState;
 
-class LinkStateTest extends \PHPUnit_Framework_TestCase
+class LinkStateTest extends \PHPUnit\Framework\TestCase
 {
     /**
-     * @dataProvider testCreateDataProvider
+     * @dataProvider createDataProvider
      *
      * @param string $type
      * @param int $state
@@ -23,7 +23,7 @@ class LinkStateTest extends \PHPUnit_Framework_TestCase
     /**
      * @return array
      */
-    public function testCreateDataProvider()
+    public function createDataProvider()
     {
         return [
             'curl 28' => [

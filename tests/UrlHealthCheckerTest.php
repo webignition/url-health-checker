@@ -16,7 +16,7 @@ use webignition\UrlHealthChecker\Configuration;
 use webignition\UrlHealthChecker\LinkState;
 use webignition\UrlHealthChecker\UrlHealthChecker;
 
-class UrlHealthCheckerTest extends \PHPUnit_Framework_TestCase
+class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
 {
     /**
      * @var UrlHealthChecker
