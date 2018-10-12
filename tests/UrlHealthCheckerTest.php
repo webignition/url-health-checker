@@ -4,7 +4,6 @@ namespace webignition\Tests\UrlHealthChecker;
 
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Exception\ConnectException;
-use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
@@ -33,9 +32,6 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
      */
     private $httpHistory;
 
-    /**
-     * {@inheritdoc}
-     */
     protected function setUp()
     {
         parent::setUp();
@@ -73,13 +69,11 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
      * @param Configuration $configuration
      * @param string $url
      * @param LinkState $expectedLinkState
-     *
-     * @throws GuzzleException
      */
     public function testCheck(
         array $httpFixtures,
         Configuration $configuration,
-        $url,
+        string $url,
         LinkState $expectedLinkState
     ) {
         $this->appendHttpFixtures($httpFixtures);
@@ -90,10 +84,7 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expectedLinkState, $linkState);
     }
 
-    /**
-     * @return array
-     */
-    public function checkDataProvider()
+    public function checkDataProvider(): array
     {
         $emptyRequest = new Request('GET', 'http://example.com');
 
@@ -109,10 +100,7 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
                 ],
                 'configuration' => new Configuration([]),
                 'url' => 'http://example.com/',
-                'expectedLinkState' => new LinkState(
-                    LinkState::TYPE_HTTP,
-                    200
-                ),
+                'expectedLinkState' => new LinkState(LinkState::TYPE_HTTP, 200),
             ],
             'too many redirects' => [
                 'httpFixtures' => [
@@ -129,10 +117,7 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
                     ],
                 ]),
                 'url' => 'http://example.com/',
-                'expectedLinkState' => new LinkState(
-                    LinkState::TYPE_HTTP,
-                    301
-                ),
+                'expectedLinkState' => new LinkState(LinkState::TYPE_HTTP, 301),
             ],
             'http 404' => [
                 'httpFixtures' => [
@@ -146,10 +131,7 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
                     ],
                 ]),
                 'url' => 'http://example.com/',
-                'expectedLinkState' => new LinkState(
-                    LinkState::TYPE_HTTP,
-                    404
-                ),
+                'expectedLinkState' => new LinkState(LinkState::TYPE_HTTP, 404),
             ],
             'http 404, retry on bad response=false' => [
                 'httpFixtures' => [
@@ -162,10 +144,7 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
                     Configuration::CONFIG_KEY_RETRY_ON_BAD_RESPONSE => false,
                 ]),
                 'url' => 'http://example.com/',
-                'expectedLinkState' => new LinkState(
-                    LinkState::TYPE_HTTP,
-                    404
-                ),
+                'expectedLinkState' => new LinkState(LinkState::TYPE_HTTP, 404),
             ],
             'http 500' => [
                 'httpFixtures' => [
@@ -179,10 +158,7 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
                     ],
                 ]),
                 'url' => 'http://example.com/',
-                'expectedLinkState' => new LinkState(
-                    LinkState::TYPE_HTTP,
-                    500
-                ),
+                'expectedLinkState' => new LinkState(LinkState::TYPE_HTTP, 500),
             ],
             'curl 6' => [
                 'httpFixtures' => [
@@ -194,10 +170,7 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
                     ],
                 ]),
                 'url' => 'http://example.com/',
-                'expectedLinkState' => new LinkState(
-                    LinkState::TYPE_CURL,
-                    6
-                ),
+                'expectedLinkState' => new LinkState(LinkState::TYPE_CURL, 6),
             ],
             'curl 28' => [
                 'httpFixtures' => [
@@ -209,10 +182,7 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
                     ],
                 ]),
                 'url' => 'http://example.com/',
-                'expectedLinkState' => new LinkState(
-                    LinkState::TYPE_CURL,
-                    28
-                ),
+                'expectedLinkState' => new LinkState(LinkState::TYPE_CURL, 28),
             ],
             'malformed URL' => [
                 'httpFixtures' => [],
@@ -222,10 +192,7 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
                     ],
                 ]),
                 'url' => 'host:65536',
-                'expectedLinkState' => new LinkState(
-                    LinkState::TYPE_CURL,
-                    3
-                ),
+                'expectedLinkState' => new LinkState(LinkState::TYPE_CURL, 3),
             ],
             'curl 51 as RequestException' => [
                 'httpFixtures' => [
@@ -240,10 +207,7 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
                     ],
                 ]),
                 'url' => 'http://example.com/',
-                'expectedLinkState' => new LinkState(
-                    LinkState::TYPE_CURL,
-                    51
-                ),
+                'expectedLinkState' => new LinkState(LinkState::TYPE_CURL, 51),
             ],
             'http 999' => [
                 'httpFixtures' => [
@@ -257,17 +221,29 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
                     ],
                 ]),
                 'url' => 'http://example.com/',
-                'expectedLinkState' => new LinkState(
-                    LinkState::TYPE_HTTP,
-                    999
-                ),
+                'expectedLinkState' => new LinkState(LinkState::TYPE_HTTP, 999),
             ],
         ];
     }
 
-    /**
-     * @throws GuzzleException
-     */
+    public function testCheckUnhandledGuzzleException()
+    {
+        $this->appendHttpFixtures([
+            new UnhandledGuzzleException(),
+        ]);
+
+        $this->urlHealthChecker->setConfiguration(new Configuration([
+            Configuration::CONFIG_KEY_HTTP_METHOD_LIST => [
+                Configuration::HTTP_METHOD_GET,
+            ],
+        ]));
+
+        $linkState = $this->urlHealthChecker->check('http://example.com/');
+
+        $this->assertEquals(new LinkState(LinkState::TYPE_CURL, 0), $linkState);
+    }
+
+
     public function testCheckWithReferrer()
     {
         $this->appendHttpFixtures([
@@ -285,9 +261,6 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($referrer, $this->httpHistory->getLastRequest()->getHeader('referer')[0]);
     }
 
-    /**
-     * @throws GuzzleException
-     */
     public function testCheckWithUserAgentSelection()
     {
         $this->appendHttpFixtures([
@@ -306,9 +279,6 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('foo', $this->httpHistory->getLastRequest()->getHeader('user-agent')[0]);
     }
 
-    /**
-     * @param array $httpFixtures
-     */
     private function appendHttpFixtures(array $httpFixtures)
     {
         foreach ($httpFixtures as $httpFixture) {
@@ -316,9 +286,6 @@ class UrlHealthCheckerTest extends \PHPUnit\Framework\TestCase
         }
     }
 
-    /**
-     * {@inheritdoc}
-     */
     protected function assertPostConditions()
     {
         parent::assertPostConditions();

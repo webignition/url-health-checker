@@ -80,8 +80,6 @@ class UrlHealthChecker
      * @param string $url
      *
      * @return LinkState
-     *
-     * @throws GuzzleException
      */
     public function check(string $url): LinkState
     {
@@ -108,6 +106,9 @@ class UrlHealthChecker
                 $curlException = $curlExceptionFactory::fromConnectException($connectException);
                 return new LinkState(LinkState::TYPE_CURL, $curlException->getCurlCode());
             }
+        } catch (GuzzleException $guzzleException) {
+            // Cannot happen
+            return new LinkState(LinkState::TYPE_CURL, 0);
         }
 
         return new LinkState(LinkState::TYPE_HTTP, $response->getStatusCode());
@@ -117,10 +118,9 @@ class UrlHealthChecker
      * @param RequestInterface $request
      *
      * @return ResponseInterface
-     *
      * @throws GuzzleException
      */
-    private function getHttpResponse(RequestInterface $request): ResponseInterface
+    private function getHttpResponse(RequestInterface $request): ?ResponseInterface
     {
         try {
             return $this->httpClient->send($request);

@@ -14,14 +14,13 @@ class ConfigurationTest extends \PHPUnit\Framework\TestCase
      * @param string $expectedReferrer
      * @param bool $expectedRetryOnBadResponse
      * @param string[] $expectedUserAgents
-     * @param bool $expectedHasReferrer
      */
     public function testCreate(
-        $configurationValues,
-        $expectedHttpMethodList,
-        $expectedReferrer,
-        $expectedRetryOnBadResponse,
-        $expectedUserAgents
+        array $configurationValues,
+        array $expectedHttpMethodList,
+        string $expectedReferrer,
+        bool $expectedRetryOnBadResponse,
+        array $expectedUserAgents
     ) {
         $configuration = new Configuration($configurationValues);
 
@@ -31,10 +30,7 @@ class ConfigurationTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($expectedUserAgents, $configuration->getUserAgents());
     }
 
-    /**
-     * @return array
-     */
-    public function createDataProvider()
+    public function createDataProvider(): array
     {
         return [
             'default' => [

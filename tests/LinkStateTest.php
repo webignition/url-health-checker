@@ -12,7 +12,7 @@ class LinkStateTest extends \PHPUnit\Framework\TestCase
      * @param string $type
      * @param int $state
      */
-    public function testCreate($type, $state)
+    public function testCreate(string $type, int $state)
     {
         $linkState = new LinkState($type, $state);
 
@@ -20,10 +20,7 @@ class LinkStateTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals($state, $linkState->getState());
     }
 
-    /**
-     * @return array
-     */
-    public function createDataProvider()
+    public function createDataProvider(): array
     {
         return [
             'curl 28' => [
